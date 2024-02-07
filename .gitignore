@@ -16,3 +16,6 @@ jspm_packages/
 .env.production.local
 .env.local
 
+# Arquivo de futuro
+falta.txt
+

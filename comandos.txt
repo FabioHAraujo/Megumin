@@ -1,0 +1,6 @@
+Além do noso querido Chat GPT disponível no canal #gpt, 
+também temos os comandos do bot:
+**Comandos do Bot**
+🔫 Roleta Russa
+• !roletarussa: Gira a roleta! Tente a sorte, se perder, você fica um tempo sem poder jogar
+• !roletaranking: Mostra os rankings atuais da roleta russa para o grupos
