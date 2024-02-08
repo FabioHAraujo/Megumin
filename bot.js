@@ -121,7 +121,10 @@ client.on('messageCreate', async message => {
 
 // LE MENSAGEM - COMANDOS
 client.on('messageCreate', async message => {
+
     if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
+
+    if (message.channel.name === 'gpt' || message.channel.name === 'geral' ) return; // ignora o que for gpt e geral
     
     // Comando para executar a roleta-russa
     if (message.content === '!roletarussa') {
