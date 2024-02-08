@@ -3,6 +3,7 @@ const { OpenAI } = require("openai");
 const { executeRussianRoulette, getRanking } = require('./comandos/roletarussa.js');
 const { getComandos } = require('./comandos/comandos.js');
 const { getChifres } = require('./comandos/chifres.js')
+const { getClimaByLocation } = require("./comandos/clima.js");
 const fs = require('fs');
 require("dotenv").config();
 
@@ -140,6 +141,21 @@ client.on('messageCreate', async message => {
     else if (message.content === '!chifres') {
         const mensagem = getChifres(message);
         message.channel.send(mensagem);
+    }
+
+    // Dentro do seu bloco de código onde trata os comandos
+    else if (message.content.startsWith('!clima')) {
+        const cidade = message.content.split(' ')[1]; // Extrai o nome da cidade do comando
+        if (!cidade) {
+            message.channel.send("Por favor, forneça o nome de uma cidade.");
+            return;
+        }
+        const retorno = await getClimaByLocation(cidade, message);
+        retorno.forEach(({ msg, react, reply }) => {
+            if (reply) message.reply(msg);
+            else message.channel.send(msg);
+            if (react) message.react(react);
+        });
     }
 });
 
