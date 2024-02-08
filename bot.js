@@ -145,7 +145,8 @@ client.on('messageCreate', async message => {
 
     // Dentro do seu bloco de código onde trata os comandos
     else if (message.content.startsWith('!clima')) {
-        const cidade = message.content.split(' ')[1]; // Extrai o nome da cidade do comando
+        const args = message.content.slice('!clima'.length).trim().split(/ +/);
+        const cidade = args.join(' '); // Concatena todas as partes da cidade separadas por espaço
         if (!cidade) {
             message.channel.send("Por favor, forneça o nome de uma cidade.");
             return;
