@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const { OpenAI } = require("openai");
 const { executeRussianRoulette, getRanking } = require('./comandos/roletarussa.js');
 const { getComandos } = require('./comandos/comandos.js');
+const { getChifres } = require('./comandos/chifres.js')
 const fs = require('fs');
 require("dotenv").config();
 
@@ -133,6 +134,11 @@ client.on('messageCreate', async message => {
 
     else if (message.content === '!comandos' || message.content === '!cmd') {
         const mensagem = getComandos(message);
+        message.channel.send(mensagem);
+    }
+
+    else if (message.content === '!chifres') {
+        const mensagem = getChifres(message);
         message.channel.send(mensagem);
     }
 });
