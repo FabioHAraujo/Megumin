@@ -5,8 +5,6 @@ const { getComandos } = require('./comandos/comandos.js');
 const { getChifres } = require('./comandos/chifres.js')
 const { getClimaByLocation } = require("./comandos/clima.js");
 const fs = require('fs');
-const { getBakuretsu } = require('./comandos/bakuretsu.js');
-const { aniversario } = require('./comandos/aniversario');
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -26,54 +24,9 @@ const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function verificarAniversarios() {
-    const horaAtual = new Date().getHours();
-    // Verifica se é meio dia && minutoAtual === 11
-    if (horaAtual === 7 || horaAtual === 12 || horaAtual === 19) {
-        console.log('Foi igual');
-        const aniversarios = JSON.parse(fs.readFileSync('./aniversarios.json', 'utf-8'));
-        console.log('Aniversários lidos:', aniversarios);
-        const hoje = new Date();
-        const diaAtual = hoje.getDate();
-        console.log('diaAtual: ', diaAtual);
-        const mesAtual = hoje.getMonth() + 1;
-        console.log('mesAtual: ', mesAtual);
-
-        const aniversariantesDoDia = [];
-
-        Object.entries(aniversarios).forEach(([nome, dataString]) => {
-            const data = new Date(dataString); // Convertendo a string para objeto Date
-            console.log('Entrou no loop');
-            if (!isNaN(data.getTime())) {
-                console.log('Sobreviveu ao if');
-                const diaAniversario = data.getDate()+1;
-                console.log(diaAniversario);
-                const mesAniversario = data.getMonth() + 1; // Adicionando 1 porque os meses começam de 0
-                console.log(mesAniversario);
-                if (diaAniversario === diaAtual && mesAniversario === mesAtual) {
-                    aniversariantesDoDia.push([nome, diaAniversario, mesAniversario]);
-                }
-            }
-        });
-
-        // Envia mensagem de feliz aniversário para cada aniversariante
-        console.log('Aniversariantes do dia:', aniversariantesDoDia);
-        aniversariantesDoDia.forEach(([nome]) => {
-            const canalGeral = client.channels.cache.get('935879667544653856');
-            console.log('Antes de enviar mensagem');
-            canalGeral.send(`🎉🎈 Feliz aniversário, ${nome}! 🎈🎉`);
-        });
-        console.log('Final');
-    }
-};
-
-
-// Quando discord bot é iniciado
+// When discord bot has started up
 client.once('ready', () => {
     console.log('Bot is ready!');
-
-    // Verifica aniversários diariamente ao meio dia
-    setInterval(verificarAniversarios, 3600000); // Verifica a cada minuto
 });
 
 
@@ -168,12 +121,11 @@ client.on('messageCreate', async message => {
 
 // LE MENSAGEM - COMANDOS
 client.on('messageCreate', async message => {
-
     if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
-
-    if (message.channel.name === 'gpt' || message.channel.name === 'geral' ) return; // ignora o que for gpt e geral
     
-    // Comando para executar a roleta-russa
+    if (message.channel.name === 'gpt' || message.channel.name === 'geral' ) return; // ignora o que não for do gpt
+    
+	// Comando para executar a roleta-russa
     if (message.content === '!roletarussa') {
         executeRussianRoulette(message);
     }
@@ -195,8 +147,7 @@ client.on('messageCreate', async message => {
 
     // Dentro do seu bloco de código onde trata os comandos
     else if (message.content.startsWith('!clima')) {
-        const args = message.content.slice('!clima'.length).trim().split(/ +/);
-        const cidade = args.join(' '); // Concatena todas as partes da cidade separadas por espaço
+        const cidade = message.content.split(' ')[1]; // Extrai o nome da cidade do comando
         if (!cidade) {
             message.channel.send("Por favor, forneça o nome de uma cidade.");
             return;
@@ -207,15 +158,6 @@ client.on('messageCreate', async message => {
             else message.channel.send(msg);
             if (react) message.react(react);
         });
-    }
-
-    else if (message.content === '!bakuretsu') {
-        const mensagem = getBakuretsu(message);
-        message.channel.send(mensagem);
-    }
-
-    else if (message.content.startsWith('!aniversario')) {
-        aniversario(message);
     }
 });
 
