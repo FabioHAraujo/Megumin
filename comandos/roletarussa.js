@@ -52,7 +52,7 @@ const executeRussianRoulette = (message) => {
         const userRecord = roletaRanking[userId].record;
         const userPoints = roletaRanking[userId].atual;
 
-        message.reply(`Você sobreviveu! :tada: (Pontos: ${userPoints} vezes, Recorde: ${userRecord}, Mortes: ${roletaRanking[userId].deaths})`);
+        message.reply(`Você sobreviveu! :tada: (Pontos: ${userPoints} , Recorde: ${userRecord}, Mortes: ${roletaRanking[userId].deaths})`);
     }
 }   
 

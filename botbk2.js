@@ -1,20 +1,13 @@
-// IMPORTS
 const { Client, GatewayIntentBits } = require('discord.js');
 const { OpenAI } = require("openai");
-const { remove } = require('diacritics');
-const fs = require('fs');
-
-// COMANDOS
 const { executeRussianRoulette, getRanking } = require('./comandos/roletarussa.js');
 const { getComandos } = require('./comandos/comandos.js');
 const { getChifres } = require('./comandos/chifres.js')
 const { getClimaByLocation } = require("./comandos/clima.js");
+const fs = require('fs');
 const { getBakuretsu } = require('./comandos/bakuretsu.js');
 const { aniversario } = require('./comandos/aniversario');
 const { getZonibu } = require('./comandos/zonibu.js');
-const { getSeisOnibus } = require('./comandos/seiseonibus.js');
-const { getPeixes } = require('./comandos/pescar.js')
-
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -121,8 +114,12 @@ const addMessage = (threadId, content) => {
     )
 }
 
-// CHAMADA DO GPT
-async function processarMensagemGPT(message) {
+// This event will run every time a message is received
+client.on('messageCreate', async message => {
+    if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
+    
+    // console.log(message);
+    if (message.channel.name !== 'gpt') return; // ignora o que não for do gpt
 
     const discordThreadId = message.channel.id;
     let openAiThreadId = getOpenAiThreadId(discordThreadId);
@@ -133,6 +130,7 @@ async function processarMensagemGPT(message) {
         openAiThreadId = thread.id;
         addThreadToMap(discordThreadId, openAiThreadId);
         if(message.channel.isThread()){
+            //Gather all thread messages to fill out the OpenAI thread since we haven't seen this one yet
             const starterMsg = await message.channel.fetchStarterMessage();
             const otherMessagesRaw = await message.channel.messages.fetch();
 
@@ -143,12 +141,14 @@ async function processarMensagemGPT(message) {
             const messages = [starterMsg.content, ...otherMessages]
                 .filter(msg => !!msg && msg !== '')
 
+            // console.log(messages);
             await Promise.all(messages.map(msg => addMessage(openAiThreadId, msg)));
             messagesLoaded = true;
         }
     }
 
-    if(!messagesLoaded){ 
+    // console.log(openAiThreadId);
+    if(!messagesLoaded){ //If this is for a thread, assume msg was loaded via .fetch() earlier
         await addMessage(openAiThreadId, message.content);
     }
 
@@ -165,7 +165,7 @@ async function processarMensagemGPT(message) {
     console.log(response);
     
     message.reply(response);
-};
+});
 
 // LE MENSAGEM - COMANDOS SPAMMERS
 client.on('messageCreate', async message => {
@@ -175,26 +175,24 @@ client.on('messageCreate', async message => {
     if (message.channel.name === 'gpt' || message.channel.name === 'geral' ) return; // ignora o que for gpt e geral
 
     if(!message.content.startsWith === '!') return;
-
-    const normalizedMessage = remove(message.content).toLowerCase();
     
     // Comando para executar a roleta-russa
-    if (normalizedMessage === '!roletarussa') {
+    if (message.content === '!roletarussa') {
         executeRussianRoulette(message);
     }
     // Comando para exibir o ranking
-    else if (normalizedMessage === '!roletaranking') {
+    else if (message.content === '!roletaranking') {
         const ranking = getRanking(message);
         message.channel.send(ranking);
     }
 
-    else if (normalizedMessage === '!comandos' || normalizedMessage === '!cmd') {
+    else if (message.content === '!comandos' || message.content === '!cmd') {
         const mensagem = getComandos(message);
         message.channel.send(mensagem);
     }
 
     // Dentro do seu bloco de código onde trata os comandos
-    else if (normalizedMessage.startsWith('!clima')) {
+    else if (message.content.startsWith('!clima')) {
         const args = message.content.slice('!clima'.length).trim().split(/ +/);
         const cidade = args.join(' '); // Concatena todas as partes da cidade separadas por espaço
         if (!cidade) {
@@ -238,63 +236,16 @@ client.on('messageCreate', async message => {
         const mensagem = getChifres(message);
         message.channel.send(mensagem);
     }
-
-    else if (message.content === '!pescar') {
-        getPeixes(message);
-    }
-});
-
-// CANAL #GPT
-client.on('messageCreate', async message => {
-    if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
-    
-    if (message.channel.name !== 'gpt') return; // ignora o que não for do gpt
-
-    await processarMensagemGPT(message);
-
 });
 
 
 // RESPSOTAS ALEATÓRIAS
 client.on('messageCreate', async message => {
-    if (message.channel.name !== 'geral' && message.content.trim() !== '') return;
-
-    if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
-
     const chance = Math.floor(Math.random() * 20) + 1; // Número aleatório entre 1 e 20
+    if (chance === 1) {
 
-    const normalizedMessage = remove(message.content).toLowerCase();
+    } else {
 
-    if (normalizedMessage === 'seis e onibus') {
-        console.log('Executei');
-        getSeisOnibus(message);
-        return;
-    }
-
-    else if (chance === 1) {
-        await processarMensagemGPT(message);
-    }
-
-    
-    
-});
-
-
-// Mensagens administrativas
-client.on('messageCreate', async message => {
-    if (message.channel.name !== 'controle' && message.content.trim() !== '') return;
-
-    if (message.author.bot || !message.content || message.content === '') return; //Ignore bot messages
-
-    const normalizedMessage = remove(message.content).toLowerCase();
-
-    const canalGeral = client.channels.cache.get('935879667544653856');
-
-    if (normalizedMessage === 'tipa') {
-        canalGeral.send(`Olá pessoal! 🌟✨ Se você gostaria de me ajudar com o projeto e contribuir para o seu desenvolvimento, considere fazer uma doação! 🎁🌟 Cada contribuição faz toda a diferença e me ajuda a continuar desenvolvendo e expandindo o Los Forasteros para beneficiar ainda mais pessoas. Sinta-se à vontade para doar pelo https://tipa.ai/SuperK1LL3R. Agradeço imensamente o seu apoio! 🙏`);
-    }
-    else if (normalizedMessage === 'mine') {
-        canalGeral.send(`Cansado de jogar minecraft sozinho? Vem jogar no Los Forasteros - forasteros.com.br - Para maior detalhes, utilize o canal #ajuda`);
     }
 });
 
